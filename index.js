@@ -256,6 +256,30 @@ app.get("/api/order", async (req, res)=> {
 })
 
 
+// reading categories
+async function readCategory() {
+    try{
+        const category = await Categories.find()
+        return category
+    } catch(error) {
+        throw(error)
+    }
+}
+
+app.get("/api/category", async (req, res)=> {
+    try {
+        const allCategories = await readCategory()
+
+        if(allCategories){
+            res.json(allCategories)
+        } else {
+            res.status(404).json({error: "Category not found"})
+        }
+    } catch (error){
+        res.status(500).json({error: "Failed to fetch category"})
+    }
+})
+
 const PORT = process.env.PORT || 3000
 
 app.listen(PORT, ()=> {
