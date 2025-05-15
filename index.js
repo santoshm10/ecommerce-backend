@@ -207,7 +207,7 @@ app.post("/api/cart", async (req, res) => {
 // reading cart of product
 async function readCartProducts() {
     try {
-        const allCartProducts = await Cart.find().populate("category")
+        const allCartProducts = await Cart.find().populate("productId")
         return allCartProducts
     } catch (error){
         throw (error)
