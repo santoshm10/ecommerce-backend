@@ -187,21 +187,24 @@ app.get("/api/users/:userId", async (req, res) => {
 // adding product in cart
 
 app.post("/api/cart", async (req, res) => {
-  const { userId, productId, quantity } = req.body;
+  const { user, product, quantity } = req.body;
+  console.log("Incoming cart data:", req.body);
 
   try {
-    if (!productId) {
+    if (!product) {
       return res.status(400).json({ error: "Product ID is required" });
     }
 
-    const cartItem = new Cart({ userId, productId, quantity });
+    const cartItem = new Cart({ user, product, quantity });
     const savedItem = await cartItem.save();
 
     res.status(201).json({ message: "Item added to cart", cart: savedItem });
   } catch (error) {
+    console.error("❌ Error saving cart item:", error);
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
+
 
 
 // reading cart of product

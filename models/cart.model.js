@@ -5,7 +5,7 @@ const cartSchema = new mongoose.Schema({
     
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Make sure you have a User model
+      ref: "User",
       required: true,
     },
     product: {
