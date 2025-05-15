@@ -218,19 +218,21 @@ async function readCartProducts() {
     }
 }
 
-app.get("/api/cart", async (req, res)=> {
-    try {
-        const cartProducts = await readCartProducts()
+app.get("/api/cart", async (req, res) => {
+  try {
+    const cartProducts = await readCartProducts();
 
-        if(cartProducts) {
-            res.json(cartProducts)
-        } else {
-            res.status(404).json({error: "Cart not foud."})
-        }
-    } catch (error) {
-        res.status(500).json({error: "Failed to fatch cart."})
+    if (cartProducts && cartProducts.length > 0) {
+      res.json(cartProducts);
+    } else {
+      res.status(404).json({ error: "Cart not found." });
     }
-})
+  } catch (error) {
+    console.error("Failed to fetch cart:", error);
+    res.status(500).json({ error: "Failed to fetch cart." });
+  }
+});
+
 
 // reading wishlist of product
 async function readWishlistProducts(){
