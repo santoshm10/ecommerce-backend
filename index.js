@@ -183,6 +183,27 @@ app.get("/api/users/:userId", async (req, res) => {
     }
 })
 
+
+// adding product in cart
+
+app.post("/api/cart", async (req, res) => {
+  const { userId, productId, quantity } = req.body;
+
+  try {
+    if (!productId) {
+      return res.status(400).json({ error: "Product ID is required" });
+    }
+
+    const cartItem = new Cart({ userId, productId, quantity });
+    const savedItem = await cartItem.save();
+
+    res.status(201).json({ message: "Item added to cart", cart: savedItem });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to add item to cart" });
+  }
+});
+
+
 // reading cart of product
 async function readCartProducts() {
     try {
