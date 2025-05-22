@@ -111,6 +111,41 @@ app.post("/api/users", async (req, res)=> {
     }
 })
 
+// login and check user
+
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // 1. Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // 2. Compare password directly (plain text check)
+    if (user.password !== password) {
+      return res.status(401).json({ error: "Invalid password" });
+    }
+
+    // 3. Return basic user info (no JWT)
+    res.json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Server error during login" });
+  }
+});
+
+
+
 // reading all products
 async function readProducts(){
     try {
@@ -200,12 +235,10 @@ app.post("/api/cart", async (req, res) => {
 
     res.status(201).json({ message: "Item added to cart", cart: savedItem });
   } catch (error) {
-    console.error("❌ Error saving cart item:", error);
+    console.error("Error saving cart item:", error);
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
-
-
 
 // reading cart of product
 async function readCartProducts() {
@@ -243,6 +276,9 @@ async function readWishlistProducts(){
         throw (error)
     }
 }
+
+
+
 
 app.get("/api/wishlist", async (req, res)=> {
     try {
