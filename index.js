@@ -111,43 +111,8 @@ app.post("/api/users", async (req, res)=> {
     }
 })
 
-// login and check user
-
-app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    // 1. Check if user exists
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // 2. Compare password directly (plain text check)
-    if (user.password !== password) {
-      return res.status(401).json({ error: "Invalid password" });
-    }
-
-    // 3. Return basic user info (no JWT)
-    res.json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ error: "Server error during login" });
-  }
-});
-
-
-
 // reading all products
-async function readProducts(){
+/*async function readProducts(){
     try {
         const allProducts = await Products.find().populate("category")
         return allProducts
@@ -169,6 +134,38 @@ app.get("/api/products", async (req, res)=> {
         res.status(500).json({error: "Failed to fetch products."})
     }
 })
+    */
+
+// changed reading all products with category fillter. old code is commented above and new code is created bellow
+
+// Function to read products based on optional category query
+async function readProducts(category) {
+    try {
+        const filter = category ? { category } : {};
+        const products = await Products.find(filter).populate("category");
+        return products;
+    } catch (error) {
+        throw error;
+    }
+}
+
+// Route to fetch products (optionally filtered by category)
+app.get("/api/products", async (req, res) => {
+    const { category } = req.query;
+
+    try {
+        const products = await readProducts(category);
+
+        if (products && products.length > 0) {
+            res.json(products);
+        } else {
+            res.status(404).json({ error: "No products found." });
+        }
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch products." });
+    }
+});
+
 
 // reading products by product id
 async function readProductById(productId){
