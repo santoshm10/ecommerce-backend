@@ -223,19 +223,66 @@ app.post("/api/cart", async (req, res) => {
   console.log("Incoming cart data:", req.body);
 
   try {
-    if (!product) {
-      return res.status(400).json({ error: "Product ID is required" });
+    let cartItem = await Cart.findOne({user, product})
+
+    if(cartItem) {
+        // If product already in cart, update quantity
+        cartItem.quantity += quantity
+        await cartItem.save()
+        return res.status(200).json({message: "Quantity updated", cart: cartItem})
     }
 
-    const cartItem = new Cart({ user, product, quantity });
-    const savedItem = await cartItem.save();
+     // If product not in cart, create new entry
+    cartItem = new Cart({ user, product, quantity });
+    await cartItem.save();
 
-    res.status(201).json({ message: "Item added to cart", cart: savedItem });
+    res.status(201).json({ message: "Item added to cart", cart: cartItem });
   } catch (error) {
-    console.error("Error saving cart item:", error);
+    console.error("Cart add error", error);
     res.status(500).json({ error: "Failed to add item to cart" });
   }
 });
+
+//app.put: in cart if we click on increse (+) or decrese (-) product quantity then update product quantity
+app.put("/api/cart", async (req, res)=> {
+    const { user, product, quantity} = req.body
+
+    try {
+        const cartItem = await Cart.findOne({ user, product })
+        if (!cartItem) return res.status(404).json({ error: "Cart item not found" })
+
+        cartItem.quantity = quantity
+        await cartItem.save()
+        res.status(200).json({message: "Cart quantity updated", cart: cartItem})    
+    } catch(error) {
+        console.error("Update quantity error:", error);
+        res.status(500).json({ error: "Failed to update cart" });
+    }
+})
+
+//app.get: geting cart by user id
+
+app.get("/api/cart/:userId", async (req, res)=> {
+    try{
+        const cartItem = await Cart.find({user: req.params.userId}).populate("product").populate("user")
+        res.status(200).json(cartItem)
+    } catch(error){
+        console.error("Cart fetch error:", error)
+        res.status(500).json({error: "Failed to fetch cart by user id"})
+    }
+})
+
+//app.delete: remove product from cart 
+
+app.delete("/api/cart/:id", async (req, res)=> {
+    try{
+        const deletedItem = await Cart.findByIdAndDelete(req.params.id);
+        if(!deletedItem) return res.status(404).json({ error: "Item not found" })
+    } catch(error){
+        console.error("Delete error:", error)
+        res.status(500).json({ error: "Failed to delete item from cart" })
+    }
+})
 
 // reading cart of product
 async function readCartProducts() {
@@ -273,9 +320,6 @@ async function readWishlistProducts(){
         throw (error)
     }
 }
-
-
-
 
 app.get("/api/wishlist", async (req, res)=> {
     try {
