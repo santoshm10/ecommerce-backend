@@ -88,6 +88,7 @@ app.post("/api/category", async (req, res) => {
     }
 })
 
+/*
 //adding user or register in database
 async function registerUser(newUser) {
   const { name, age, email, password, phoneNumber, address } = newUser;
@@ -158,9 +159,9 @@ app.post("/api/login", async (req, res) => {
     res.status(401).json({ error: error.message || "Login failed" });
   }
 });
+*/
 
-
-/*adding user register in database
+//adding user register in database
 
 async function addUser(newUser){
     try{
@@ -185,7 +186,7 @@ app.post("/api/users", async (req, res)=> {
         res.status(500).json({error: "Faild to fetch User."})
     }
 })
-*/
+
 
 // reading all products
 /*async function readProducts(){
