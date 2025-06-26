@@ -2,6 +2,9 @@ require("dotenv").config()
 const express = require("express")
 const cors = require("cors")
 const app = express()
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 
 const Products = require("./models/products.model")
 const User = require("./models/user.model")
@@ -85,7 +88,79 @@ app.post("/api/category", async (req, res) => {
     }
 })
 
-//adding user in database
+//adding user or register in database
+async function registerUser(newUser) {
+  const { name, age, email, password, phoneNumber, address } = newUser;
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) throw new Error("Email already exists");
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const user = new User({
+    name,
+    age,
+    email,
+    password: hashedPassword,
+    phoneNumber,
+    address,
+  });
+
+  const saveUser = await user.save();
+  return saveUser;
+}
+
+app.post("/api/register", async (req, res) => {
+  try {
+    const user = await registerUser(req.body);
+
+    res.status(201).json({
+      message: "User registered successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message || "Registration failed" });
+  }
+});
+
+// login api
+
+async function loginUser(credentials) {
+  const { email, password } = credentials;
+
+  const user = await User.findOne({ email });
+  if (!user) throw new Error("User not found");
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new Error("Invalid credentials");
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
+  return { token, user };
+}
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { token, user } = await loginUser(req.body);
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (error) {
+    res.status(401).json({ error: error.message || "Login failed" });
+  }
+});
+
+
+/*adding user register in database
 
 async function addUser(newUser){
     try{
@@ -110,6 +185,7 @@ app.post("/api/users", async (req, res)=> {
         res.status(500).json({error: "Faild to fetch User."})
     }
 })
+*/
 
 // reading all products
 /*async function readProducts(){
