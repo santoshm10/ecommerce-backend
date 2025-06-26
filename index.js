@@ -2,8 +2,8 @@ require("dotenv").config()
 const express = require("express")
 const cors = require("cors")
 const app = express()
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+//const bcrypt = require("bcryptjs");
+//const jwt = require("jsonwebtoken");
 
 
 const Products = require("./models/products.model")
@@ -84,12 +84,17 @@ app.post("/api/category", async (req, res) => {
             res.status(404).json({error: "Category not found."})
         }
     } catch(error){
+        console.error("Category fetch error:", error); 
         res.status(500).json({error: "Failed to fatch category."})
     }
 })
 
 /*
 //adding user or register in database
+
+JWT_SECRET=your_secret_key_here
+
+
 async function registerUser(newUser) {
   const { name, age, email, password, phoneNumber, address } = newUser;
 
