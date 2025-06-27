@@ -392,11 +392,104 @@ app.get("/api/cart", async (req, res) => {
   }
 });
 
+// adding product in wishlist
+    app.post("/api/wishlist", async (req, res) => {
+  const { user, product, quantity } = req.body;
+  console.log("Incoming cart data:", req.body);
+
+  try {
+    let wishlistItem = await Wishlist.findOne({user, product})
+
+    if(wishlistItem) {
+        // If product already in wishlist, update quantity
+        wishlistItem.quantity += quantity
+        await wishlistItem.save()
+        return res.status(200).json({message: "Quantity updated", wishlist: wishlistItem})
+    }
+
+     // If product not in wishlist, create new entry
+    wishlistItem = new Wishlist({ user, product, quantity });
+    await wishlistItem.save();
+
+    res.status(201).json({ message: "Item added to wishlist", wishlist: wishlistItem });
+  } catch (error) {
+    console.error("Wishlist add error", error);
+    res.status(500).json({ error: "Failed to add item to wishlist" });
+  }
+});
+
+//app.put: in wishlist if we click on increse (+) or decrese (-) product quantity then update product quantity
+app.put("/api/wishlist", async (req, res)=> {
+    const { user, product, quantity} = req.body
+
+    try {
+        const wishlistItem = await Wishlist.findOne({ user, product })
+        if (!wishlistItem) return res.status(404).json({ error: "Wishlist item not found" })
+
+        wishlistItem.quantity = quantity
+        await wishlistItem.save()
+        res.status(200).json({message: "Wishlist quantity updated", wishlist: wishlistItem})    
+    } catch(error) {
+        console.error("Update quantity error:", error);
+        res.status(500).json({ error: "Failed to update cart" });
+    }
+})
+
+//app.get: geting wishlist by user id
+
+app.get("/api/wishlist/:userId", async (req, res)=> {
+    try{
+        const wishlistItem = await Wishlist.find({user: req.params.userId}).populate("product").populate("user")
+        res.status(200).json(wishlistItem)
+    } catch(error){
+        console.error("Wishlist fetch error:", error)
+        res.status(500).json({error: "Failed to fetch wishlist by user id"})
+    }
+})
+
+//app.delete: remove product from wishlist 
+
+app.delete("/api/wishlist/:id", async (req, res)=> {
+    try{
+        const deletedItem = await Wishlist.findByIdAndDelete(req.params.id);
+        if(!deletedItem) return res.status(404).json({ error: "Item not found" })
+    } catch(error){
+        console.error("Delete error:", error)
+        res.status(500).json({ error: "Failed to delete item from cart" })
+    }
+})
+
+
+// reading wishlist of product
+async function readCartProducts() {
+    try {
+        const allCartProducts = await Cart.find().populate("product").populate("user");
+
+        return allCartProducts
+    } catch (error){
+        throw (error)
+    }
+}
+
+app.get("/api/cart", async (req, res) => {
+  try {
+    const cartProducts = await readCartProducts();
+
+    if (cartProducts && cartProducts.length > 0) {
+      res.json(cartProducts);
+    } else {
+      res.status(404).json({ error: "Cart not found." });
+    }
+  } catch (error) {
+    console.error("Failed to fetch cart:", error);
+    res.status(500).json({ error: "Failed to fetch cart." });
+  }
+});
 
 // reading wishlist of product
 async function readWishlistProducts(){
     try {
-        const allWishlistProducts = await Wishlist.find().populate("category")
+        const allWishlistProducts = await Wishlist.find().populate("product").populate("user");
         return allWishlistProducts
     } catch (error) {
         throw (error)
@@ -407,7 +500,7 @@ app.get("/api/wishlist", async (req, res)=> {
     try {
         const wishlistProducts = await readWishlistProducts()
 
-        if(wishlistProducts) {
+        if(wishlistProducts && wishlistProducts > 0) {
             res.json(wishlistProducts)
         } else {
             res.status(404).json({error: "Wishlist not found."})
