@@ -3,27 +3,34 @@ const mongoose = require("mongoose")
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
+    },
+    userAvatarUrl: {
+        type: String
     },
     age: {
         type: Number,
-        required: true
+        
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        minlength: [6, 'Password must be at least 6 characters long']
     },
     phoneNumber: {
         type: Number,
-        required: true
+        trim: true
+        
     },
     address: [{
         type: String,
-        required: true
+        
     }]
 },
 { timestamps: true }

@@ -23,6 +23,10 @@ const productsSchema = new mongoose.Schema({
       default: 0,
       required: true,
     },
+    discount: {
+      type: Number,
+      default: 0,
+    },
     size: {
       type: String,
       enum: ["S", "M", "L", "XL", "XXL"],
@@ -53,11 +57,6 @@ const productsSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: "Categories",
     },
-    // Optional:
-    // stock: {
-    //   type: Number,
-    //   default: 0
-    // }
   },
   { timestamps: true })
 
