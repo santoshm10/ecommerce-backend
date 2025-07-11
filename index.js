@@ -263,6 +263,26 @@ app.post("/api/users/:userId/address", async (req, res) => {
   }
 });
 
+// Express.js DELETE route (example)
+app.delete("/api/users/:userId/address/:index", async (req, res) => {
+  const { userId, index } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user || !Array.isArray(user.address)) {
+      return res.status(404).json({ error: "User or address not found" });
+    }
+
+    user.address.splice(index, 1);
+    await user.save();
+
+    res.status(200).json({ message: "Address deleted" });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
 
 // adding product in cart
 
@@ -438,34 +458,6 @@ app.delete("/api/wishlist/:id", async (req, res) => {
   } catch (error) {
     console.error("Delete error:", error);
     res.status(500).json({ error: "Failed to delete item from cart" });
-  }
-});
-
-// reading wishlist of product
-async function readCartProducts() {
-  try {
-    const allCartProducts = await Cart.find()
-      .populate("product")
-      .populate("user");
-
-    return allCartProducts;
-  } catch (error) {
-    throw error;
-  }
-}
-
-app.get("/api/cart", async (req, res) => {
-  try {
-    const cartProducts = await readCartProducts();
-
-    if (cartProducts && cartProducts.length > 0) {
-      res.json(cartProducts);
-    } else {
-      res.status(404).json({ error: "Cart not found." });
-    }
-  } catch (error) {
-    console.error("Failed to fetch cart:", error);
-    res.status(500).json({ error: "Failed to fetch cart." });
   }
 });
 
