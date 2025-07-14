@@ -487,6 +487,8 @@ app.get("/api/wishlist", async (req, res) => {
   }
 });
 
+// POST or add products in order from cart
+
 async function addOrder(newOrderData) {
   try {
     const newOrder = new Order(newOrderData);
@@ -497,20 +499,20 @@ async function addOrder(newOrderData) {
   }
 }
 
-app.post("/api/order", async (req, res) => {
+app.post("/api/order/", async (req, res) => {
   console.log("Request body:", req.body);
   console.log("Received request at /api/order");
 
+  const { customer, orderItem, orderPrice, deliveryAdress } = req.body;
   try {
-    const { customer, orderItem, orderPrice } = req.body;
+    if (!customer || !orderItem || orderItem.length === 0 || !orderPrice || !deliveryAdress) {
 
-    if (!customer || !orderItem || orderItem.length === 0 || !orderPrice) {
       return res
         .status(400)
         .json({ error: "Missing required fields for order." });
     }
-
     const addedOrder = await addOrder(req.body);
+
 
     console.log("Saved order:", addedOrder);
 
@@ -527,6 +529,8 @@ app.post("/api/order", async (req, res) => {
     res.status(500).json({ error: "Failed to create order", error });
   }
 });
+
+
 
 // reading order of product
 async function readOrderProducts() {
