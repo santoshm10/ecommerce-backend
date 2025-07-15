@@ -358,7 +358,7 @@ app.delete("/api/cart/:id", async (req, res) => {
 });
 
 // DELETE all cart products after placing order
-app.delete("/api/cart/:userId", async (req, res) => {
+app.delete("/api/cart/user/:userId", async (req, res) => {
   try {
     const deletedCart = await Cart.deleteMany({ user: req.params.userId });
 
