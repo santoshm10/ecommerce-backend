@@ -357,6 +357,22 @@ app.delete("/api/cart/:id", async (req, res) => {
   }
 });
 
+// DELETE all cart products after placing order
+app.delete("/api/cart/:userId", async (req, res) => {
+  try {
+    const deletedCart = await Cart.deleteMany({ user: req.params.userId });
+
+    if (deletedCart.deletedCount === 0) {
+      return res.status(404).json({ error: "No cart items found for this user." });
+    }
+
+    res.status(200).json({ message: "All cart items deleted successfully." });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({ error: "Failed to delete cart items." });
+  }
+});
+
 // reading cart of product
 async function readCartProducts() {
   try {
