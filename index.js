@@ -585,7 +585,7 @@ app.get("/api/order/user/:userId", async (req, res) => {
   try {
     const userOrders = await Order.find({ customer: req.params.userId })
       .populate("customer", "name email")
-      .populate("orderItem.product", "title price image")
+      .populate("orderItem.product", "name price imageUrls")
       .sort({ createdAt: -1 });
 
     // Always return 200, even if empty
