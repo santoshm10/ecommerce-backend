@@ -580,21 +580,19 @@ app.get("/api/order", async (req, res) => {
 });
 
 // ✅ Get all orders of a specific user
+
 app.get("/api/order/user/:userId", async (req, res) => {
   try {
     const userOrders = await Order.find({ customer: req.params.userId })
-      .populate("customer", "name email") // Optional: get user info
-      .populate("orderItem.product", "title price image") // Get product details
-      .sort({ createdAt: -1 }); // Recent first
+      .populate("customer", "name email")
+      .populate("orderItem.product", "title price image")
+      .sort({ createdAt: -1 });
 
-    if (userOrders.length > 0) {
-      res.status(200).json(userOrders);
-    } else {
-      res.status(404).json({ error: "No orders found for this user." });
-    }
+    // Always return 200, even if empty
+    return res.status(200).json(userOrders);
   } catch (error) {
     console.error("User orders fetch error:", error);
-    res.status(500).json({ error: "Failed to fetch user orders." });
+    return res.status(500).json({ error: "Failed to fetch user orders." });
   }
 });
 
