@@ -1,9 +1,9 @@
 require("dotenv").config();
+const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
 const app = express();
 const bcrypt = require("bcryptjs");
-//const jwt = require("jsonwebtoken"); // Assuming this is still commented out
 
 const Products = require("./models/products.model");
 const User = require("./models/user.model");
@@ -21,20 +21,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-console.log("Middleware: CORS applied.");
+
 app.use(express.json());
-console.log("Middleware: express.json() applied. Ready to parse JSON bodies.");
 
 initializeDatabase();
-console.log("Database initialization called.");
-
-// ------------- ADD THIS TEST ROUTE HERE (KEEP IT) -------------
-app.get("/api/test-route", (req, res) => {
-  console.log("Backend: /api/test-route was hit!");
-  res.status(200).json({ message: "Test route hit successfully!" });
-});
-console.log("Route: /api/test-route GET defined.");
-// ----------------------------------------------------
 
 //adding product in database
 
@@ -49,11 +39,6 @@ async function addProduct(newProduct) {
 }
 
 app.post("/api/products", async (req, res) => {
-  /*
-    console.log("Request body:", req.body)
-    console.log('Received request at /api/products')
-    */
-
   try {
     const addedProduct = await addProduct(req.body);
 
@@ -85,10 +70,6 @@ async function addCategory(newCategory) {
 }
 
 app.post("/api/category", async (req, res) => {
-  /*
-    console.log("Request body:", req.body)
-    console.log('Received request at /api/category')
-    */
   try {
     const addedCategory = await addCategory(req.body);
 
@@ -125,8 +106,6 @@ async function addUser(newUser) {
   const saveUser = await user.save();
   return saveUser; // Returns the saved user object on success
 }
-
-console.log("Function: addUser defined.");
 
 app.post("/api/users", async (req, res) => {
   try {
@@ -230,22 +209,21 @@ app.get("/api/users/:userId", async (req, res) => {
 //add new address and update user
 
 app.post("/api/users/:userId/address", async (req, res) => {
- 
   try {
     const userId = req.params.userId;
-    console.log("✅ /api/users/:userId/address  userid:", req.params.userId);
-    
-    const newAddress = req.body.address; 
-    console.log("✅ typeof newAddress: ", typeof newAddress);
-    console.log("✅ newAddress: ", newAddress);
 
-   if (typeof newAddress !== "string") {
-      return res.status(400).json({ error: "Address must be a string", user: userId, address: newAddress});
-    
-   }
+    const newAddress = req.body.address;
+
+    if (typeof newAddress !== "string") {
+      return res.status(400).json({
+        error: "Address must be a string",
+        user: userId,
+        address: newAddress,
+      });
+    }
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { $push: { address: newAddress} },
+      { $push: { address: newAddress } },
       { new: true }
     );
 
@@ -259,7 +237,9 @@ app.post("/api/users/:userId/address", async (req, res) => {
     });
   } catch (error) {
     console.error("Error while adding address:", error.message);
-    res.status(500).json({ error: "Internal server error", details: error.message });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 });
 
@@ -282,13 +262,10 @@ app.delete("/api/users/:userId/address/:index", async (req, res) => {
   }
 });
 
-
-
 // adding product in cart
 
 app.post("/api/cart", async (req, res) => {
   const { user, product, quantity } = req.body;
-  console.log("Incoming cart data:", req.body);
 
   try {
     let cartItem = await Cart.findOne({ user, product });
@@ -363,7 +340,9 @@ app.delete("/api/cart/user/:userId", async (req, res) => {
     const deletedCart = await Cart.deleteMany({ user: req.params.userId });
 
     if (deletedCart.deletedCount === 0) {
-      return res.status(404).json({ error: "No cart items found for this user." });
+      return res
+        .status(404)
+        .json({ error: "No cart items found for this user." });
     }
 
     res.status(200).json({ message: "All cart items deleted successfully." });
@@ -404,7 +383,6 @@ app.get("/api/cart", async (req, res) => {
 // adding product in wishlist
 app.post("/api/wishlist", async (req, res) => {
   const { user, product, quantity } = req.body;
-  console.log("Incoming cart data:", req.body);
 
   try {
     let wishlistItem = await Wishlist.findOne({ user, product });
@@ -509,6 +487,7 @@ async function addOrder(newOrderData) {
   try {
     const newOrder = new Order(newOrderData);
     const savedOrder = await newOrder.save();
+
     return savedOrder;
   } catch (error) {
     throw error;
@@ -516,21 +495,20 @@ async function addOrder(newOrderData) {
 }
 
 app.post("/api/order/", async (req, res) => {
-  console.log("Request body:", req.body);
-  console.log("Received request at /api/order");
-
   const { customer, orderItem, orderPrice, deliveryAdress } = req.body;
   try {
-    if (!customer || !orderItem || orderItem.length === 0 || !orderPrice || !deliveryAdress) {
-
+    if (
+      !customer ||
+      !orderItem ||
+      orderItem.length === 0 ||
+      !orderPrice ||
+      !deliveryAdress
+    ) {
       return res
         .status(400)
         .json({ error: "Missing required fields for order." });
     }
     const addedOrder = await addOrder(req.body);
-
-
-    console.log("Saved order:", addedOrder);
 
     if (addedOrder) {
       res.status(200).json({
@@ -546,8 +524,6 @@ app.post("/api/order/", async (req, res) => {
   }
 });
 
-
-
 // reading order of product
 async function readOrderProducts() {
   try {
@@ -562,9 +538,6 @@ async function readOrderProducts() {
 }
 
 app.get("/api/order", async (req, res) => {
-  /*
-    console.log("GET request at /api/order");
-  */
   try {
     const orderProducts = await readOrderProducts();
 
@@ -588,7 +561,6 @@ app.get("/api/order/user/:userId", async (req, res) => {
       .populate("orderItem.product", "_id name price imageUrls description")
       .sort({ createdAt: -1 });
 
-    // Always return 200, even if empty
     return res.status(200).json(userOrders);
   } catch (error) {
     console.error("User orders fetch error:", error);
